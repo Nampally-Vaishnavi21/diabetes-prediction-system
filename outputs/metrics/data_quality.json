@@ -1,0 +1,312 @@
+{
+  "n_rows": 768,
+  "n_features": 8,
+  "target": "Outcome",
+  "class_counts": {
+    "non_diabetic_0": 500,
+    "diabetic_1": 268
+  },
+  "positive_rate_pct": 34.9,
+  "n_duplicates": 0,
+  "zero_encoded_missing": {
+    "Glucose": {
+      "count": 5,
+      "pct": 0.65
+    },
+    "BloodPressure": {
+      "count": 35,
+      "pct": 4.56
+    },
+    "SkinThickness": {
+      "count": 227,
+      "pct": 29.56
+    },
+    "Insulin": {
+      "count": 374,
+      "pct": 48.7
+    },
+    "BMI": {
+      "count": 11,
+      "pct": 1.43
+    }
+  },
+  "rows_with_any_missing": 376,
+  "feature_stats": {
+    "pregnancies": {
+      "column": "Pregnancies",
+      "count_valid": 768,
+      "mean": 3.845,
+      "std": 3.37,
+      "min": 0.0,
+      "median": 3.0,
+      "max": 17.0,
+      "mean_diabetic": 4.866,
+      "mean_non_diabetic": 3.298,
+      "outliers_iqr": {
+        "q1": 1.0,
+        "q3": 6.0,
+        "iqr": 5.0,
+        "lower_fence": -6.5,
+        "upper_fence": 13.5,
+        "n_outliers": 4,
+        "pct_outliers": 0.52
+      }
+    },
+    "glucose": {
+      "column": "Glucose",
+      "count_valid": 763,
+      "mean": 121.687,
+      "std": 30.536,
+      "min": 44.0,
+      "median": 117.0,
+      "max": 199.0,
+      "mean_diabetic": 142.32,
+      "mean_non_diabetic": 110.644,
+      "outliers_iqr": {
+        "q1": 99.0,
+        "q3": 141.0,
+        "iqr": 42.0,
+        "lower_fence": 36.0,
+        "upper_fence": 204.0,
+        "n_outliers": 0,
+        "pct_outliers": 0.0
+      }
+    },
+    "blood_pressure": {
+      "column": "BloodPressure",
+      "count_valid": 733,
+      "mean": 72.405,
+      "std": 12.382,
+      "min": 24.0,
+      "median": 72.0,
+      "max": 122.0,
+      "mean_diabetic": 75.321,
+      "mean_non_diabetic": 70.877,
+      "outliers_iqr": {
+        "q1": 64.0,
+        "q3": 80.0,
+        "iqr": 16.0,
+        "lower_fence": 40.0,
+        "upper_fence": 104.0,
+        "n_outliers": 14,
+        "pct_outliers": 1.91
+      }
+    },
+    "skin_thickness": {
+      "column": "SkinThickness",
+      "count_valid": 541,
+      "mean": 29.153,
+      "std": 10.477,
+      "min": 7.0,
+      "median": 29.0,
+      "max": 99.0,
+      "mean_diabetic": 33.0,
+      "mean_non_diabetic": 27.235,
+      "outliers_iqr": {
+        "q1": 22.0,
+        "q3": 36.0,
+        "iqr": 14.0,
+        "lower_fence": 1.0,
+        "upper_fence": 57.0,
+        "n_outliers": 3,
+        "pct_outliers": 0.55
+      }
+    },
+    "insulin": {
+      "column": "Insulin",
+      "count_valid": 394,
+      "mean": 155.548,
+      "std": 118.776,
+      "min": 14.0,
+      "median": 125.0,
+      "max": 846.0,
+      "mean_diabetic": 206.846,
+      "mean_non_diabetic": 130.288,
+      "outliers_iqr": {
+        "q1": 76.25,
+        "q3": 190.0,
+        "iqr": 113.75,
+        "lower_fence": -94.375,
+        "upper_fence": 360.625,
+        "n_outliers": 24,
+        "pct_outliers": 6.09
+      }
+    },
+    "bmi": {
+      "column": "BMI",
+      "count_valid": 757,
+      "mean": 32.457,
+      "std": 6.925,
+      "min": 18.2,
+      "median": 32.3,
+      "max": 67.1,
+      "mean_diabetic": 35.407,
+      "mean_non_diabetic": 30.86,
+      "outliers_iqr": {
+        "q1": 27.5,
+        "q3": 36.6,
+        "iqr": 9.1,
+        "lower_fence": 13.85,
+        "upper_fence": 50.25,
+        "n_outliers": 8,
+        "pct_outliers": 1.06
+      }
+    },
+    "diabetes_pedigree": {
+      "column": "DiabetesPedigreeFunction",
+      "count_valid": 768,
+      "mean": 0.472,
+      "std": 0.331,
+      "min": 0.078,
+      "median": 0.372,
+      "max": 2.42,
+      "mean_diabetic": 0.55,
+      "mean_non_diabetic": 0.43,
+      "outliers_iqr": {
+        "q1": 0.244,
+        "q3": 0.626,
+        "iqr": 0.382,
+        "lower_fence": -0.33,
+        "upper_fence": 1.2,
+        "n_outliers": 29,
+        "pct_outliers": 3.78
+      }
+    },
+    "age": {
+      "column": "Age",
+      "count_valid": 768,
+      "mean": 33.241,
+      "std": 11.76,
+      "min": 21.0,
+      "median": 29.0,
+      "max": 81.0,
+      "mean_diabetic": 37.067,
+      "mean_non_diabetic": 31.19,
+      "outliers_iqr": {
+        "q1": 24.0,
+        "q3": 41.0,
+        "iqr": 17.0,
+        "lower_fence": -1.5,
+        "upper_fence": 66.5,
+        "n_outliers": 9,
+        "pct_outliers": 1.17
+      }
+    }
+  },
+  "correlation_matrix": {
+    "columns": [
+      "Pregnancies",
+      "Glucose",
+      "BloodPressure",
+      "SkinThickness",
+      "Insulin",
+      "BMI",
+      "DiabetesPedigreeFunction",
+      "Age",
+      "Outcome"
+    ],
+    "values": [
+      [
+        1.0,
+        0.128,
+        0.214,
+        0.1,
+        0.082,
+        0.022,
+        -0.034,
+        0.544,
+        0.222
+      ],
+      [
+        0.128,
+        1.0,
+        0.223,
+        0.228,
+        0.581,
+        0.233,
+        0.137,
+        0.267,
+        0.495
+      ],
+      [
+        0.214,
+        0.223,
+        1.0,
+        0.227,
+        0.098,
+        0.289,
+        -0.003,
+        0.33,
+        0.171
+      ],
+      [
+        0.1,
+        0.228,
+        0.227,
+        1.0,
+        0.185,
+        0.648,
+        0.115,
+        0.167,
+        0.259
+      ],
+      [
+        0.082,
+        0.581,
+        0.098,
+        0.185,
+        1.0,
+        0.228,
+        0.13,
+        0.22,
+        0.303
+      ],
+      [
+        0.022,
+        0.233,
+        0.289,
+        0.648,
+        0.228,
+        1.0,
+        0.155,
+        0.026,
+        0.314
+      ],
+      [
+        -0.034,
+        0.137,
+        -0.003,
+        0.115,
+        0.13,
+        0.155,
+        1.0,
+        0.034,
+        0.174
+      ],
+      [
+        0.544,
+        0.267,
+        0.33,
+        0.167,
+        0.22,
+        0.026,
+        0.034,
+        1.0,
+        0.238
+      ],
+      [
+        0.222,
+        0.495,
+        0.171,
+        0.259,
+        0.303,
+        0.314,
+        0.174,
+        0.238,
+        1.0
+      ]
+    ]
+  },
+  "outlier_policy": "Outliers are reported (Tukey IQR rule) but not removed: the dataset is small and extreme values such as high insulin are clinically plausible. Physiologically impossible zeros are treated as missing instead.",
+  "n_duplicates_removed": 0
+}

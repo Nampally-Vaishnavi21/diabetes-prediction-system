@@ -1,0 +1,13 @@
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.venv
+**/.env
+frontend/dist
+backend/models/*.joblib
+backend/models/*.json
+backend/models/*.csv
+e2e/screenshots
+docs/screenshots
+notebooks
+.git

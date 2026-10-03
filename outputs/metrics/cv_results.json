@@ -1,0 +1,318 @@
+{
+  "cv_method": "Stratified 5-fold cross-validation (shuffled, random_state=42) on the training set; tuning by GridSearchCV",
+  "primary_metric": "roc_auc",
+  "selection_rule": "Best mean CV ROC-AUC; models within 0.005 treated as tied, tie broken by lowest CV Brier score",
+  "selected_model": "svm",
+  "selection_reason": "Highest mean CV ROC-AUC was 0.8471. Models within 0.005 of it (Logistic Regression, Support Vector Machine (RBF), Soft-Voting Ensemble) were treated as tied and the one with the lowest CV Brier score (0.1520) was selected: Support Vector Machine (RBF).",
+  "models": [
+    {
+      "key": "logistic_regression",
+      "display_name": "Logistic Regression",
+      "why": "Simple, interpretable linear baseline; coefficients are log-odds.",
+      "best_params": {
+        "model__C": 0.01,
+        "model__class_weight": "balanced",
+        "prep__engineer__enabled": true
+      },
+      "engineered_features": true,
+      "n_configs_tried": 16,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8461,
+          "std": 0.0144
+        },
+        "pr_auc": {
+          "mean": 0.7426,
+          "std": 0.0509
+        },
+        "accuracy": {
+          "mean": 0.7589,
+          "std": 0.0126
+        },
+        "precision": {
+          "mean": 0.6389,
+          "std": 0.0188
+        },
+        "recall": {
+          "mean": 0.7102,
+          "std": 0.0384
+        },
+        "f1": {
+          "mean": 0.6721,
+          "std": 0.0216
+        },
+        "brier": {
+          "mean": 0.1664,
+          "std": 0.0074
+        }
+      },
+      "tuning_seconds": 3.1
+    },
+    {
+      "key": "decision_tree",
+      "display_name": "Decision Tree",
+      "why": "Human-readable if/else rules; high variance on its own.",
+      "best_params": {
+        "model__class_weight": "balanced",
+        "model__max_depth": 3,
+        "model__min_samples_leaf": 20,
+        "prep__engineer__enabled": false
+      },
+      "engineered_features": false,
+      "n_configs_tried": 80,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8025,
+          "std": 0.0246
+        },
+        "pr_auc": {
+          "mean": 0.6457,
+          "std": 0.0299
+        },
+        "accuracy": {
+          "mean": 0.7052,
+          "std": 0.0478
+        },
+        "precision": {
+          "mean": 0.553,
+          "std": 0.0495
+        },
+        "recall": {
+          "mean": 0.8228,
+          "std": 0.0782
+        },
+        "f1": {
+          "mean": 0.6604,
+          "std": 0.0544
+        },
+        "brier": {
+          "mean": 0.1812,
+          "std": 0.0164
+        }
+      },
+      "tuning_seconds": 7.2
+    },
+    {
+      "key": "random_forest",
+      "display_name": "Random Forest",
+      "why": "Bagging ensemble of trees; reduces the variance of a single tree.",
+      "best_params": {
+        "model__max_depth": 4,
+        "model__max_features": "sqrt",
+        "model__min_samples_leaf": 3,
+        "prep__engineer__enabled": true
+      },
+      "engineered_features": true,
+      "n_configs_tried": 48,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8399,
+          "std": 0.0213
+        },
+        "pr_auc": {
+          "mean": 0.7389,
+          "std": 0.0428
+        },
+        "accuracy": {
+          "mean": 0.7687,
+          "std": 0.025
+        },
+        "precision": {
+          "mean": 0.7309,
+          "std": 0.0727
+        },
+        "recall": {
+          "mean": 0.542,
+          "std": 0.0202
+        },
+        "f1": {
+          "mean": 0.621,
+          "std": 0.0314
+        },
+        "brier": {
+          "mean": 0.1552,
+          "std": 0.0087
+        }
+      },
+      "tuning_seconds": 68.7
+    },
+    {
+      "key": "svm",
+      "display_name": "Support Vector Machine (RBF)",
+      "why": "Maximum-margin classifier; RBF kernel captures non-linear boundaries. Probabilities via Platt (sigmoid) scaling.",
+      "best_params": {
+        "model__estimator__C": 1.0,
+        "model__estimator__class_weight": null,
+        "model__estimator__gamma": 0.01,
+        "prep__engineer__enabled": true
+      },
+      "engineered_features": true,
+      "n_configs_tried": 36,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8437,
+          "std": 0.0148
+        },
+        "pr_auc": {
+          "mean": 0.7513,
+          "std": 0.036
+        },
+        "accuracy": {
+          "mean": 0.7801,
+          "std": 0.0169
+        },
+        "precision": {
+          "mean": 0.7301,
+          "std": 0.0436
+        },
+        "recall": {
+          "mean": 0.5886,
+          "std": 0.0268
+        },
+        "f1": {
+          "mean": 0.6511,
+          "std": 0.0256
+        },
+        "brier": {
+          "mean": 0.152,
+          "std": 0.0069
+        }
+      },
+      "tuning_seconds": 8.2
+    },
+    {
+      "key": "gradient_boosting",
+      "display_name": "Gradient Boosting",
+      "why": "Boosting ensemble: each tree corrects the errors of the previous ones.",
+      "best_params": {
+        "model__learning_rate": 0.05,
+        "model__max_depth": 2,
+        "model__n_estimators": 100,
+        "model__subsample": 0.8,
+        "prep__engineer__enabled": false
+      },
+      "engineered_features": false,
+      "n_configs_tried": 32,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8386,
+          "std": 0.0183
+        },
+        "pr_auc": {
+          "mean": 0.7507,
+          "std": 0.0476
+        },
+        "accuracy": {
+          "mean": 0.785,
+          "std": 0.0136
+        },
+        "precision": {
+          "mean": 0.7379,
+          "std": 0.05
+        },
+        "recall": {
+          "mean": 0.6029,
+          "std": 0.0433
+        },
+        "f1": {
+          "mean": 0.6611,
+          "std": 0.0207
+        },
+        "brier": {
+          "mean": 0.1528,
+          "std": 0.008
+        }
+      },
+      "tuning_seconds": 17.3
+    },
+    {
+      "key": "knn",
+      "display_name": "K-Nearest Neighbours",
+      "why": "Distance-based baseline with no training phase.",
+      "best_params": {
+        "model__n_neighbors": 31,
+        "model__weights": "distance",
+        "prep__engineer__enabled": true
+      },
+      "engineered_features": true,
+      "n_configs_tried": 20,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.835,
+          "std": 0.0196
+        },
+        "pr_auc": {
+          "mean": 0.7374,
+          "std": 0.0399
+        },
+        "accuracy": {
+          "mean": 0.759,
+          "std": 0.0166
+        },
+        "precision": {
+          "mean": 0.7145,
+          "std": 0.0526
+        },
+        "recall": {
+          "mean": 0.5236,
+          "std": 0.0432
+        },
+        "f1": {
+          "mean": 0.6016,
+          "std": 0.0278
+        },
+        "brier": {
+          "mean": 0.1581,
+          "std": 0.0071
+        }
+      },
+      "tuning_seconds": 2.1
+    },
+    {
+      "key": "soft_voting_ensemble",
+      "display_name": "Soft-Voting Ensemble",
+      "why": "Averages the predicted probabilities of the top 3 tuned models. Its CV score is slightly optimistic because the members were tuned on the same folds.",
+      "best_params": {
+        "members": [
+          "logistic_regression",
+          "svm",
+          "random_forest"
+        ],
+        "voting": "soft"
+      },
+      "engineered_features": null,
+      "n_configs_tried": 1,
+      "cv": {
+        "roc_auc": {
+          "mean": 0.8471,
+          "std": 0.0154
+        },
+        "pr_auc": {
+          "mean": 0.7517,
+          "std": 0.0465
+        },
+        "accuracy": {
+          "mean": 0.7752,
+          "std": 0.0204
+        },
+        "precision": {
+          "mean": 0.7133,
+          "std": 0.0548
+        },
+        "recall": {
+          "mean": 0.6025,
+          "std": 0.053
+        },
+        "f1": {
+          "mean": 0.6507,
+          "std": 0.0333
+        },
+        "brier": {
+          "mean": 0.153,
+          "std": 0.0076
+        }
+      },
+      "tuning_seconds": null
+    }
+  ]
+}
