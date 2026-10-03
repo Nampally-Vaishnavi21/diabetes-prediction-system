@@ -1,5 +1,5 @@
 # One container = the whole website: React app + FastAPI + trained model.
-# Works on Hugging Face Spaces (port 7860) and Render/Railway (they set $PORT).
+# Works on Render (sets $PORT automatically) and any Docker host (default port 7860).
 
 # ---------- Stage 1: build the React app ----------
 FROM node:20-slim AS frontend
@@ -18,9 +18,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     MPLBACKEND=Agg \
     NUMBA_CACHE_DIR=/tmp/numba_cache \
     MPLCONFIGDIR=/tmp/matplotlib \
+    TRAIN_N_JOBS=1 \
     PORT=7860
 
-# Hugging Face Spaces runs containers as user 1000
+# Run as a normal (non-root) user
 RUN useradd -m -u 1000 user
 WORKDIR /app
 

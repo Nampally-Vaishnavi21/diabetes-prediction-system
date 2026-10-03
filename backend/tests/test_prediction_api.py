@@ -176,3 +176,32 @@ def test_example_is_a_real_valid_test_row(client):
                      np.isclose(test["BMI"], patient.bmi) &
                      np.isclose(test["Age"], patient.age)]
         assert len(match) >= 1
+
+
+# ---------- our exact Shapley code vs the shap library ----------
+def test_exact_shapley_matches_shap_library():
+    shap = pytest.importorskip("shap")
+    import joblib
+    from app.ml.explain import build_explainer, shap_values_for
+    background = joblib.load(settings.MODELS_DIR / settings.SHAP_BACKGROUND_FILE)
+    X = registry.test_set[CSV_COLUMNS].iloc[:4].copy()
+    X.iloc[0, CSV_COLUMNS.index("Insulin")] = np.nan          # include a blank input
+    ours, base = shap_values_for(build_explainer(registry.pipeline, background), X)
+
+    def f(a):
+        return registry.pipeline.predict_proba(pd.DataFrame(a, columns=CSV_COLUMNS))[:, 1]
+    ref = shap.explainers.Exact(f, shap.maskers.Independent(
+        background[CSV_COLUMNS].to_numpy(float), max_samples=len(background)))(X.to_numpy(float), silent=True)
+    assert np.allclose(ours, ref.values, atol=1e-6)
+    assert np.allclose(base, ref.base_values, atol=1e-6)
+
+
+def test_server_does_not_load_shap_library():
+    """Keeps the web server small enough for free hosting (512 MB)."""
+    import subprocess
+    import sys
+    code = ("import sys; from app.main import app; from app.services.model_registry import registry; "
+            "registry.load(); print('shap' in sys.modules, 'matplotlib' in sys.modules)")
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                         cwd=str(settings.MODELS_DIR.parent)).stdout.strip().splitlines()[-1]
+    assert out == "False False"

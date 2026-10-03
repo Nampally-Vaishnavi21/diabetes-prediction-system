@@ -53,7 +53,7 @@ from app.ml.evaluate import (bootstrap_ci, calibration_points, compute_metrics, 
 from app.ml.features import (CSV_COLUMNS, CSV_TO_KEY, FEATURES, TARGET_COLUMN,
                              ZERO_AS_MISSING_COLUMNS)
 from app.ml.models import (CV_SCORING, ENSEMBLE_DISPLAY, ENSEMBLE_KEY, ENSEMBLE_TOP_N,
-                           MODEL_ZOO, PRIMARY_METRIC, RANDOM_STATE, TIE_TOLERANCE)
+                           MODEL_ZOO, N_JOBS, PRIMARY_METRIC, RANDOM_STATE, TIE_TOLERANCE)
 from app.ml.preprocessing import build_pipeline, build_preprocessor
 
 TEST_SIZE = 0.20
@@ -168,7 +168,7 @@ def tune_model(key: str, cfg: dict, X: pd.DataFrame, y: pd.Series) -> dict:
         scoring=CV_SCORING,
         refit=PRIMARY_METRIC,       # final model = best mean ROC-AUC
         cv=make_cv(),
-        n_jobs=-1,
+        n_jobs=N_JOBS,
         error_score="raise",
     )
     search.fit(X, y)
@@ -198,7 +198,7 @@ def build_ensemble(results: list[dict], X: pd.DataFrame, y: pd.Series) -> dict:
     top = sorted(results, key=lambda r: r["cv"][PRIMARY_METRIC]["mean"], reverse=True)[:ENSEMBLE_TOP_N]
     members = [(r["key"], r["estimator"]) for r in top]
     ensemble = VotingClassifier(estimators=members, voting="soft", n_jobs=None)
-    cv = cross_validate(ensemble, X, y, scoring=CV_SCORING, cv=make_cv(), n_jobs=-1)
+    cv = cross_validate(ensemble, X, y, scoring=CV_SCORING, cv=make_cv(), n_jobs=N_JOBS)
     fold_scores = {m: cv[f"test_{m}"] for m in CV_SCORING}
     ensemble.fit(X, y)
     summary = _summarise_cv(fold_scores)
@@ -246,8 +246,8 @@ def calibration_step(selected_estimator, X: pd.DataFrame, y: pd.Series) -> dict:
     folds = make_cv()
     uncal = clone(selected_estimator)
     cal = CalibratedClassifierCV(clone(selected_estimator), method="sigmoid", cv=make_cv())
-    b_uncal = -cross_val_score(uncal, X, y, cv=folds, scoring="neg_brier_score", n_jobs=-1)
-    b_cal = -cross_val_score(cal, X, y, cv=folds, scoring="neg_brier_score", n_jobs=-1)
+    b_uncal = -cross_val_score(uncal, X, y, cv=folds, scoring="neg_brier_score", n_jobs=N_JOBS)
+    b_cal = -cross_val_score(cal, X, y, cv=folds, scoring="neg_brier_score", n_jobs=N_JOBS)
     use = bool(b_cal.mean() < b_uncal.mean())
     decision = (
         f"Calibration kept: mean CV Brier {b_cal.mean():.4f} vs {b_uncal.mean():.4f} without it."
@@ -274,7 +274,7 @@ def calibration_step(selected_estimator, X: pd.DataFrame, y: pd.Series) -> dict:
 # --------------------------------------------------------------------------- #
 def threshold_step(final_estimator, X: pd.DataFrame, y: pd.Series) -> dict:
     oof = cross_val_predict(clone(final_estimator), X, y, cv=make_cv(),
-                            method="predict_proba", n_jobs=-1)[:, 1]
+                            method="predict_proba", n_jobs=N_JOBS)[:, 1]
     best = youden_threshold(y, oof)
     log(f"  Threshold {best['threshold']:.3f} (Youden J {best['youden_j']:.3f} on out-of-fold "
         f"training predictions; sens {best['sensitivity']:.3f}, spec {best['specificity']:.3f})")

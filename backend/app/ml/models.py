@@ -19,7 +19,12 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
+import os
+
 RANDOM_STATE = 42
+# Parallel workers used during training. -1 = all CPU cores (fastest).
+# Small cloud builders can set TRAIN_N_JOBS=1 to keep memory low; results are identical.
+N_JOBS = int(os.getenv("TRAIN_N_JOBS", "-1"))
 ENGINEER = {"prep__engineer__enabled": [False, True]}
 
 MODEL_ZOO = {
@@ -46,7 +51,7 @@ MODEL_ZOO = {
     },
     "random_forest": {
         "display_name": "Random Forest",
-        "estimator": RandomForestClassifier(n_estimators=300, random_state=RANDOM_STATE, n_jobs=-1),
+        "estimator": RandomForestClassifier(n_estimators=300, random_state=RANDOM_STATE, n_jobs=N_JOBS),
         "param_grid": {
             **ENGINEER,
             "model__max_depth": [4, 6, 8, None],

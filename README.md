@@ -1,14 +1,3 @@
----
-title: Diabetes Prediction System
-emoji: 🩺
-colorFrom: blue
-colorTo: gray
-sdk: docker
-app_port: 7860
-pinned: false
-short_description: Explainable ML prototype for diabetes risk prediction
----
-
 # Diabetes Prediction System
 
 An end-to-end, explainable machine-learning web application that estimates the probability of a diabetes outcome from eight clinical measurements.
@@ -45,7 +34,7 @@ An end-to-end, explainable machine-learning web application that estimates the p
 | **Probability** | The model's estimated probability, compared against a decision threshold tuned on training data. |
 | **Uncertainty** | 50 bootstrap models give a 90% range for the estimate. A borderline flag appears when that range crosses the threshold. The results page also shows whether the other models agree. |
 | **Out-of-distribution warning** | Flags inputs outside the range seen in the training data. |
-| **Explainability** | SHAP local explanation (exact Shapley values) for each patient, plus global feature importance and a SHAP summary plot. |
+| **Explainability** | SHAP local explanation (exact Shapley values over all 256 feature subsets, verified identical to the `shap` library) for each patient, plus global feature importance and a SHAP summary plot. |
 | **What-if analysis** | Compares an original and a modified scenario with the real model. Also draws a sensitivity curve with a bootstrap band. |
 | **Model information** | Comparison of 7 models (cross-validation and test results), ROC / precision–recall / calibration curves, confusion matrix, dataset quality, feature selection and methodology. |
 | **Robustness** | Clear messages for backend unavailable, timeout, invalid input, model not trained and server errors. Users never see a stack trace. |
@@ -69,7 +58,7 @@ No value in the UI is hardcoded. Every number comes from the trained model or fr
    │                                    │  ├─ bootstrap uncertainty (50)        ├─ selection, calibration check
    │                                    │  ├─ model agreement (7 models)        ├─ threshold (out-of-fold)
    │                                    │  ├─ out-of-distribution check         ├─ test-set evaluation (once)
-   │                                    │  └─ SHAP ExactExplainer               ├─ bootstrap ensemble, SHAP
+   │                                    │  └─ exact SHAP (numpy)                ├─ bootstrap ensemble, SHAP
    └──────────── JSON ◄─────────────────┘                                       └─► backend/models/*.joblib
                                        services/model_registry.py loads ◄────────    outputs/metrics/*.json
                                        artifacts once at startup                     outputs/figures/*.png
@@ -117,7 +106,7 @@ diabetes-prediction-system/
 │   │   └── utils/                   logging, errors
 │   ├── data/raw/diabetes.csv        dataset (bundled, CC0)
 │   ├── models/                      trained artifacts (created by training)
-│   ├── tests/                       74 pytest tests
+│   ├── tests/                       76 pytest tests
 │   ├── requirements.txt
 │   └── .env.example
 ├── frontend/
@@ -284,7 +273,7 @@ curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -
 ## Testing
 
 ```bash
-# Backend: 74 tests (validation, errors, CORS, data, leakage, metrics, every endpoint)
+# Backend: 76 tests (validation, errors, CORS, data, leakage, metrics, every endpoint)
 cd backend && pytest
 
 # Frontend: 17 tests (validation rules, error mapping, prediction form behaviour)
@@ -364,7 +353,7 @@ The `Dockerfile` packages everything into **one container**:
 - it trains the model and runs the tests (if anything fails, the build stops);
 - it starts one server that serves both the website and the API (`/api/...`).
 
-Step-by-step instructions for a free public URL on Hugging Face Spaces are in **[DEPLOY.md](DEPLOY.md)**.
+Step-by-step instructions for a free public URL on **Render** are in **[DEPLOY.md](DEPLOY.md)**.
 
 To run the same single-server setup on your own computer, without Docker:
 

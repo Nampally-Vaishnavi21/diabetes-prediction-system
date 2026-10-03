@@ -173,7 +173,9 @@ A soft-voting ensemble of the top 3 was added as a seventh candidate.
 > base value + sum of contributions = predicted probability
 
 **How.**
-- We use `ExactExplainer`. With 8 features there are only 2⁸ = 256 feature subsets, so we can compute exact Shapley values instead of approximations.
+- With 8 features there are only 2⁸ = 256 feature subsets, so we compute exact Shapley values instead of approximations.
+- For each subset S, v(S) is the average model output when the features in S keep the patient's values and the rest take values from the background rows. Each feature's value is the weighted average of v(S + feature) − v(S), with weight |S|!(n−|S|−1)!/n!.
+- This is written in numpy (`app/ml/explain.py`). A test checks it gives the same numbers as the `shap` library's ExactExplainer (difference below 10⁻⁶). Doing it ourselves keeps the web server at about 200 MB instead of about 410 MB, which is what allows free hosting.
 - A "missing" feature is simulated with 100 background training rows.
 - We explain the whole pipeline on the raw inputs, so contributions are reported for Glucose, BMI and so on, in probability units.
 
@@ -208,7 +210,7 @@ Inputs that are valid but outside the range seen in training get a warning, for 
 
 | Suite | Count | What it covers |
 |---|---|---|
-| Backend `pytest` | 74 | Validation, error handlers, CORS, data loading, leakage, metric functions, every endpoint |
+| Backend `pytest` | 76 | Validation, error handlers, CORS, data loading, leakage, metric functions, every endpoint |
 | Frontend `vitest` | 17 | Validation rules, API error mapping, prediction form behaviour |
 | End-to-end (`e2e/run_e2e.py`) | 18 browser checks | Every page and button against the real backend, at desktop, tablet and mobile widths |
 

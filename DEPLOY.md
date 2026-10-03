@@ -1,103 +1,99 @@
-# Put the project online as a website
+# Put the project online for free (Render)
 
-These steps give you a public link such as `https://your-name-diabetes-prediction.hf.space` that anyone can open in a browser. Nothing needs to be installed on the visitor's computer.
+At the end you get a public link like `https://diabetes-prediction.onrender.com`. Anyone can open it in a browser: the website, the API and the trained model all run in one container.
 
-The recommended host is **Hugging Face Spaces**:
-- it is free, and no credit card is needed;
-- it provides 16 GB of RAM;
-- it builds and runs the `Dockerfile` in this project automatically.
+**Why Render.** It runs Docker containers on its free plan with 512 MB of memory, and no credit card is needed to start. This app uses about 210 MB of memory while running.
 
-## What happens when it builds
-
-The `Dockerfile` does the following:
-
-1. Builds the React app.
-2. Installs the Python libraries.
-3. Trains the model inside the container, so the saved model always matches the installed library versions.
-4. Runs the backend test suite. If anything fails, the build stops instead of publishing a broken site.
-5. Starts one server on port 7860:
-   - website pages at `/`, `/predict`, `/results`, and so on;
-   - API at `/api/...`;
-   - API documentation at `/docs`.
-
-The first build takes about **8–12 minutes**. After that, the site starts in seconds.
+**What you need:**
+- a GitHub account (free);
+- a Render account (free; you can sign in with GitHub);
+- `git` installed on your computer (check with `git --version`).
 
 ---
 
-## Step-by-step: Hugging Face Spaces
+## Part 1: Put the project on GitHub
 
-### 1. Create an account
-Sign up at https://huggingface.co/join and verify your email address.
+### 1. Create an empty repository
+1. Go to **https://github.com/new**.
+2. **Repository name:** `diabetes-prediction-system`.
+3. **Public** or Private: either works with Render.
+4. Do **not** tick "Add a README", ".gitignore" or "license". The repository must be empty.
+5. Click **Create repository**.
 
-### 2. Create a Space
-1. Go to https://huggingface.co/new-space.
-2. **Space name:** for example `diabetes-prediction`.
-3. **License:** any; MIT is fine.
-4. **SDK:** choose **Docker**, then the **Blank** template.
-5. **Hardware:** the free CPU option.
-6. **Visibility:** Public, so examiners can open it.
-7. Click **Create Space**.
-
-### 3. Upload the project
-
-**Option A: in the browser (easiest)**
-1. Unzip `diabetes-prediction-system.zip` on your computer.
-2. On your Space page, open **Files**, then **Add file**, then **Upload files**.
-3. Open the unzipped `diabetes-prediction-system` folder. Select **everything inside it** and drag it into the upload area. Do not drag the outer folder itself. The items to include are:
-   - `Dockerfile`
-   - `README.md`
-   - `.dockerignore`
-   - `backend/`
-   - `frontend/`
-   - `outputs/`
-   - `docs/`
-   - `e2e/`
-   - the other top-level files
-4. Click **Commit changes to main**.
-
-> The `README.md` must be the one from this project. Its first lines (between the `---` markers) tell Hugging Face to use Docker on port 7860.
->
-> Do not upload `node_modules/` or `.venv/` if you created them locally.
-
-**Option B: with git**
+### 2. Push the project
+Open a terminal **inside the unzipped `diabetes-prediction-system` folder**. That is the folder containing `Dockerfile`, `backend/` and `frontend/`. Then run:
 
 ```bash
-git clone https://huggingface.co/spaces/YOUR-USERNAME/diabetes-prediction
-# copy everything from diabetes-prediction-system/ into the cloned folder, then:
-cd diabetes-prediction
+git init
 git add .
 git commit -m "Diabetes Prediction System"
-git push
+git branch -M main
+git remote add origin https://github.com/YOUR-USERNAME/diabetes-prediction-system.git
+git push -u origin main
 ```
 
-When git asks for a password, use a Hugging Face **access token** with *write* permission. Create one at https://huggingface.co/settings/tokens.
+- If git asks you to sign in, use your browser sign-in. If it asks for a password, use a GitHub **personal access token** instead of your password.
+- `.gitignore` already leaves out `node_modules`, `.venv`, `frontend/dist` and the locally trained model files. They are not needed, because the server trains its own model.
 
-### 4. Wait for the build
-- The Space shows **Building**. Click **Logs** to watch progress; you will see the `[train]` lines from model training.
-- When the status changes to **Running**, the site is live.
-- Your link is `https://YOUR-USERNAME-diabetes-prediction.hf.space`. It is also embedded on the Space page.
+Refresh the GitHub page. You should see `Dockerfile`, `backend/`, `frontend/` and the other files at the top level.
 
-### 5. Check it
-1. Open the link. The Dashboard should show **Connected** and **Support Vector Machine (RBF)**.
-2. Go to **Prediction**, then click **Load example**, then **Predict**.
+---
+
+## Part 2: Deploy on Render
+
+### 3. Create the account
+Go to **https://render.com**, click **Get Started**, then **Sign up with GitHub**.
+
+### 4. Create the web service
+1. In the Render Dashboard, click **+ New**, then **Web Service**.
+2. Choose **Git Provider** → **GitHub**. Allow Render to access your `diabetes-prediction-system` repository, then select it.
+3. Fill in the settings:
+
+| Setting | Value |
+|---|---|
+| Name | `diabetes-prediction` (this becomes your link) |
+| Language | **Docker**. You must pick this yourself from the list. |
+| Branch | `main` |
+| Region | **Singapore** (closest to India) |
+| Root Directory | leave empty (the `Dockerfile` is at the top level) |
+| Instance Type | **Free** |
+
+4. Open **Advanced** and set **Health Check Path** to `/api/health`. No environment variables are needed, because Render provides `PORT` itself.
+5. Click **Create Web Service**.
+
+### 5. Wait for the first build (about 10–20 minutes)
+The **Logs** tab shows each stage:
+- `npm ci` / `npm run build`: the React website builds;
+- `pip install`: the Python libraries install;
+- `[train] ...`: the model trains (single-threaded to stay within the free plan's limits);
+- `76 passed`: the tests pass. If any test fails, the build stops and the old version stays online.
+- `Uvicorn running on http://0.0.0.0:10000`: the server has started.
+
+When the status at the top shows **Live**, your site is online.
+
+### 6. Check it
+1. Open `https://diabetes-prediction.onrender.com`. The exact link is shown at the top of the service page.
+2. The **Dashboard** should show **Connected** and **Support Vector Machine (RBF)**.
+3. Go to **Prediction**, click **Load example**, then **Predict**. The result page should appear.
+
+Put this link in your report.
 
 ---
 
 ## Good to know
 
-- **Sleeping.** Free Spaces go to sleep after a period with no visitors. The next visit wakes the site, which takes about a minute. Open it shortly before your viva.
-- **Updating.** Upload the changed files again (or `git push`). The Space rebuilds automatically.
-- **Same results as on your computer.** Training uses a fixed `random_state`, so the metrics match your local run.
-- **Disclaimer.** The medical disclaimer is shown on every page of the public site.
+- **Sleeping.** On the free plan, the service goes to sleep after 15 minutes with no visitors. The next visit wakes it in about a minute; after that it is fast. **Open the link a few minutes before your viva.**
+- **Free hours.** Render gives 750 free instance hours per month, which is enough for this one service to stay available all month.
+- **Updating.** Change files locally, then run `git add .`, `git commit -m "update"` and `git push`. Render rebuilds and redeploys automatically.
+- **Same results.** Training uses a fixed `random_state`, so the online model gives the same metrics as your local run.
 
-## If the build fails
-- Open **Logs**. The last lines show which step failed.
-- **"Space configuration" or port error.** Check that `README.md` starts with the `---` block containing `sdk: docker` and `app_port: 7860`.
-- **Test failure during the build.** The log shows which test failed. Fix it and push again.
+## If something goes wrong
 
-## Alternative: Render.com
-The same `Dockerfile` also works on Render:
-1. Push the project to GitHub.
-2. In Render, create a **New Web Service** from that repository and choose the **Docker** runtime.
-
-Render sets `$PORT` automatically. The running server uses about 460 MB of memory, which is very close to the limit of Render's free 512 MB instance, so a paid instance with at least 1 GB is advisable there. This is why Hugging Face Spaces is the recommended option.
+| What you see | Fix |
+|---|---|
+| Build fails at `npm ci` | Check that `frontend/package-lock.json` was pushed to GitHub. |
+| Build fails with a test failure | The log names the failing test. Paste the last 30 lines of the log to get help. |
+| Build fails with "out of memory" or the build is killed | Check that the `Dockerfile` contains `TRAIN_N_JOBS=1`. |
+| The site shows only `{"message": ...}` JSON | The React build was not copied. Check the log for errors after `npm run build`. |
+| "Backend unavailable" right after waking | Wait 30 seconds and refresh. The server is still loading the model. |
+| Deploy status "Failed" with a health check error | Check that **Health Check Path** is `/api/health`. |

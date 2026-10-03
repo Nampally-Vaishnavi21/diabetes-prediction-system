@@ -13,10 +13,19 @@ WHAT: For one patient, SHAP splits the model's predicted probability into a
 WHY:  The model is an SVM, which has no readable coefficients. SHAP works for
       any model, so it explains exactly the probability the user sees.
 
-HOW:  We use shap's ExactExplainer. With only 8 features there are
-      2^8 = 256 feature subsets, so SHAP can compute exact Shapley values
-      instead of an approximation. A "missing" feature is simulated by
-      replacing it with values from a background sample of 100 training rows.
+HOW:  With only 8 features there are 2^8 = 256 feature subsets
+      ("coalitions"), so we compute EXACT Shapley values instead of an
+      approximation:
+        1. For every subset S, v(S) = average model output when the features
+           in S keep the patient's values and the others take values from a
+           background sample of 100 training rows.
+        2. A feature's Shapley value = weighted average, over all subsets S
+           without it, of v(S + feature) - v(S), with the classic weight
+           |S|! (n-|S|-1)! / n!.
+      This is the same calculation as the shap library's ExactExplainer with
+      an Independent masker (a test checks they agree to 1e-6). It is written
+      out in numpy so the web server does not need to load the shap library
+      (~260 MB), which lets the app run on small free hosting.
       We explain the full pipeline on RAW inputs, so contributions are
       reported for "Glucose", "BMI", ... (not for scaled/engineered columns)
       and are in probability units.
@@ -24,36 +33,67 @@ HOW:  We use shap's ExactExplainer. With only 8 features there are
 VIVA: "SHAP shows how the model used each feature for this prediction. It is
       a description of the model, not proof that a feature causes diabetes."
 """
+from math import factorial
+
 import numpy as np
 import pandas as pd
-import shap
 
 from app.ml.features import CSV_COLUMNS, FEATURES
 
 BACKGROUND_SIZE = 100
+METHOD = "Exact Shapley values (SHAP) over all 256 feature subsets, full pipeline, probability units"
 SHAP_NOTE = (
     "SHAP values describe how the model used each input for this estimate. "
     "They show association within the model, not medical causation."
 )
 
 
-def make_predict_fn(model):
-    """SHAP passes numpy arrays; the pipeline expects a DataFrame with CSV column names."""
-    def predict(X):
-        return model.predict_proba(pd.DataFrame(np.asarray(X, dtype=float), columns=CSV_COLUMNS))[:, 1]
-    return predict
+class ExactShapleyExplainer:
+    """Exact (interventional) Shapley values for a model with a few features."""
+
+    def __init__(self, model, background: pd.DataFrame):
+        self.model = model
+        self.background = background[CSV_COLUMNS].to_numpy(dtype=float)     # (B, n)
+        self.n = len(CSV_COLUMNS)
+        m = 2 ** self.n
+        idx = np.arange(m)
+        # masks[k, j] is True when feature j is "present" in coalition k
+        self.masks = ((idx[:, None] >> np.arange(self.n)) & 1).astype(bool)  # (256, 8)
+        self.sizes = self.masks.sum(axis=1)
+        self.weights = np.array([factorial(s) * factorial(self.n - s - 1) / factorial(self.n)
+                                 for s in range(self.n)])
+        # For each feature i: the coalitions without i, and the same coalitions with i added
+        self.without = [idx[(idx >> i) & 1 == 0] for i in range(self.n)]
+        self.with_ = [w | (1 << i) for i, w in enumerate(self.without)]
+
+    def _predict(self, X: np.ndarray) -> np.ndarray:
+        return self.model.predict_proba(pd.DataFrame(X, columns=CSV_COLUMNS))[:, 1]
+
+    def coalition_values(self, x: np.ndarray) -> np.ndarray:
+        """v(S) for all 256 subsets S, in one batched model call."""
+        b = len(self.background)
+        data = np.where(self.masks[:, None, :], x[None, None, :], self.background[None, :, :])
+        preds = self._predict(data.reshape(-1, self.n))
+        return preds.reshape(len(self.masks), b).mean(axis=1)
+
+    def explain_row(self, x: np.ndarray) -> tuple[np.ndarray, float]:
+        v = self.coalition_values(np.asarray(x, dtype=float))
+        phi = np.array([
+            np.sum(self.weights[self.sizes[wo]] * (v[wi] - v[wo]))
+            for wo, wi in zip(self.without, self.with_)
+        ])
+        return phi, float(v[0])          # v(empty set) = base value
 
 
-def build_explainer(model, background: pd.DataFrame):
-    masker = shap.maskers.Independent(background[CSV_COLUMNS].to_numpy(dtype=float),
-                                      max_samples=len(background))
-    return shap.explainers.Exact(make_predict_fn(model), masker)
+def build_explainer(model, background: pd.DataFrame) -> ExactShapleyExplainer:
+    return ExactShapleyExplainer(model, background)
 
 
-def shap_values_for(explainer, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+def shap_values_for(explainer: ExactShapleyExplainer, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     """Returns (values [n_rows, 8], base_values [n_rows])."""
-    exp = explainer(X[CSV_COLUMNS].to_numpy(dtype=float), silent=True)
-    return np.asarray(exp.values), np.asarray(exp.base_values).reshape(-1)
+    rows = X[CSV_COLUMNS].to_numpy(dtype=float)
+    out = [explainer.explain_row(r) for r in rows]
+    return np.array([o[0] for o in out]), np.array([o[1] for o in out])
 
 
 def local_explanation(explainer, row: pd.DataFrame, probability: float, raw_inputs: dict) -> dict:
@@ -75,7 +115,7 @@ def local_explanation(explainer, row: pd.DataFrame, probability: float, raw_inpu
     base_value = float(base[0])
     total = base_value + float(vals.sum())
     return {
-        "method": "SHAP ExactExplainer on the full pipeline (probability units)",
+        "method": METHOD,
         "base_value": round(base_value, 5),
         "prediction": round(float(probability), 5),
         "sum_check": round(total, 5),          # equals prediction (additivity)
@@ -120,7 +160,7 @@ def global_explanation(explainer, X: pd.DataFrame, values=None, base=None) -> di
         beeswarm.append({"feature": FEATURES[i].key, "label": FEATURES[i].label, "points": pts})
 
     return {
-        "method": "SHAP ExactExplainer, background = 100 training rows, explained set = held-out test set",
+        "method": f"{METHOD}; background = {BACKGROUND_SIZE} training rows; explained set = held-out test set",
         "n_explained": int(len(X)),
         "base_value": round(float(base.mean()), 5),
         "importance": importance,

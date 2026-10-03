@@ -15,7 +15,7 @@
 **Environment used:** Python 3.13, scikit-learn 1.9.1, SHAP 0.52.0, FastAPI 0.142, Node 22.
 
 **Results:**
-- 74/74 backend tests passed.
+- 76/76 backend tests passed.
 - 17/17 frontend tests passed.
 - 18/18 end-to-end browser checks passed.
 - The fresh training run produced exactly the same test metrics as the original run (fixed `random_state`).
